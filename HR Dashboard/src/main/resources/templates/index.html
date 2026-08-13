@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HR Dashboard</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+            background: #f4f6f9;
+            color: #1f2937;
+            line-height: 1.5;
+            padding: 2rem;
+        }
+
+        .container {
+            max-width: 960px;
+            margin: 0 auto;
+        }
+
+        header {
+            margin-bottom: 2rem;
+        }
+
+        header h1 {
+            font-size: 1.75rem;
+            font-weight: 700;
+        }
+
+        header p {
+            color: #6b7280;
+            margin-top: 0.25rem;
+        }
+
+        .badge {
+            display: inline-block;
+            background: #dbeafe;
+            color: #1e40af;
+            font-size: 0.8rem;
+            font-weight: 600;
+            padding: 0.25rem 0.6rem;
+            border-radius: 999px;
+            margin-top: 0.5rem;
+        }
+
+        .live-indicator {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            font-size: 0.8rem;
+            color: #059669;
+            margin-left: 0.75rem;
+        }
+
+        .live-dot {
+            width: 8px;
+            height: 8px;
+            background: #10b981;
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.4; }
+        }
+
+        .card {
+            background: #fff;
+            border-radius: 12px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .card h2 {
+            font-size: 1.125rem;
+            margin-bottom: 1rem;
+        }
+
+        .alert {
+            padding: 0.75rem 1rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            font-size: 0.95rem;
+            background: #ecfdf5;
+            color: #065f46;
+            border: 1px solid #a7f3d0;
+        }
+
+        .alert-update {
+            background: #eff6ff;
+            color: #1e40af;
+            border-color: #bfdbfe;
+        }
+
+        .alert-delete {
+            background: #fef2f2;
+            color: #991b1b;
+            border-color: #fecaca;
+        }
+
+        .stats {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .stat {
+            background: #f9fafb;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 0.75rem 1rem;
+            flex: 1;
+        }
+
+        .stat-label {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            color: #6b7280;
+        }
+
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-top: 0.25rem;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            text-align: left;
+            padding: 0.75rem;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        th {
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            color: #6b7280;
+        }
+
+        .empty-state {
+            color: #6b7280;
+            text-align: center;
+            padding: 2rem 1rem;
+        }
+
+        .refresh-hint {
+            font-size: 0.875rem;
+            color: #6b7280;
+            margin-top: 1rem;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <header>
+        <h1>HR Dashboard</h1>
+    </header>
+
+    <div id="last-event-banner" th:if="${lastEvent}" class="alert"
+         th:classappend="${lastEvent.eventType == 'EMPLOYEE_UPDATED'} ? 'alert-update' : (${lastEvent.eventType == 'EMPLOYEE_DELETED'} ? 'alert-delete' : '')">
+        Last event: <strong th:text="${lastEvent.name}">Name</strong>
+        (<span th:text="${lastEvent.eventType}">EMPLOYEE_CREATED</span>)
+        at <span th:text="${#temporals.format(lastEvent.timestamp, 'yyyy-MM-dd HH:mm:ss')}">timestamp</span>
+    </div>
+
+    <div class="card">
+        <h2>Employees</h2>
+
+        <div class="stats">
+            <div class="stat">
+                <div class="stat-label">Total Employees</div>
+                <div class="stat-value" id="employee-count" th:text="${employeeCount}">0</div>
+            </div>
+        </div>
+
+        <table id="employee-table" th:style="${#lists.isEmpty(employees)} ? 'display:none' : ''">
+            <thead>
+            <tr>
+                <th>ID</th>
+                <th>Name</th>
+                <th>Department</th>
+                <th>Email</th>
+                <th>Received At</th>
+            </tr>
+            </thead>
+            <tbody id="employee-table-body">
+            <tr th:each="employee : ${employees}">
+                <td th:text="${employee.id}"></td>
+                <td th:text="${employee.name}"></td>
+                <td th:text="${employee.department}"></td>
+                <td th:text="${employee.email}"></td>
+                <td th:text="${employee.receivedAt != null ? #temporals.format(employee.receivedAt, 'yyyy-MM-dd HH:mm:ss') : '—'}"></td>
+            </tr>
+            </tbody>
+        </table>
+
+        <p id="empty-state" class="empty-state" th:style="${!#lists.isEmpty(employees)} ? 'display:none' : ''">
+            No employees received yet. Create one in the Employee Management app
+            (<a href="http://localhost:8080" target="_blank">localhost:8080</a>),
+            then refresh this page.
+        </p>
+    </div>
+</div>
+</body>
+</html>
