@@ -1,0 +1,9 @@
+{
+  "profiles": {
+    "ZipUnzipFunction": {
+      "commandName": "Project",
+      "commandLineArgs": "host start --port 7071",
+      "launchBrowser": false
+    }
+  }
+}

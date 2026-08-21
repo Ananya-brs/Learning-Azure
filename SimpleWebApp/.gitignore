@@ -1,0 +1,15 @@
+bin/
+obj/
+publish/
+app.zip
+.vs/
+.vscode/
+.idea/
+*.user
+*.userosscache
+*.suo
+appsettings.Development.json
+.dotnet/
+TestResults/
+artifacts/
+.azure/
