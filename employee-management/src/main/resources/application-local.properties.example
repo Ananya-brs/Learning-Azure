@@ -1,0 +1,2 @@
+# Copy to application-local.properties and paste your connection string from Azure Portal.
+app.servicebus.connection-string=PASTE_YOUR_CONNECTION_STRING_HERE
